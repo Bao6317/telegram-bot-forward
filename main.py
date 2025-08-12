@@ -1,20 +1,28 @@
+import os
 import telebot
-from telebot import types
 
-# 你的 Telegram Bot Token（去 BotFather 拿）
-TOKEN = "8343172946:AAEmtmqgxODIMcaC75O7PmdmRa-tDVKWGVM"
-bot = telebot.TeleBot(TOKEN)
+# 從環境變數讀取 Token（Render → Environment 裡加 BOT_TOKEN）
+TOKEN = os.getenv("BOT_TOKEN")
+if not TOKEN:
+    raise RuntimeError("BOT_TOKEN is missing (set it in Render → Environment)")
 
-# 來源群組 ID
-SOURCE_CHAT_ID = -1001234567890  # 替換成來源群組 ID
-# 目標群組 ID
-TARGET_CHAT_ID = -1009876543210  # 替換成目標群組 ID
+bot = telebot.TeleBot(TOKEN, parse_mode="HTML")
 
-# 收到訊息時觸發
-@bot.message_handler(func=lambda message: True)
-def forward_message(message):
-    if message.chat.id == SOURCE_CHAT_ID:
-        bot.forward_message(TARGET_CHAT_ID, message.chat.id, message.message_id)
+# 這裡換成你的實際 chat id（負數是頻道/群組）
+SOURCE_CHAT_ID = -1001234567890
+TARGET_CHAT_ID = -1009876543210
 
-print("Bot 正在運行中...")
-bot.polling()
+# 確保沒有 webhook（避免 409）
+bot.delete_webhook(drop_pending_updates=True)
+
+@bot.message_handler(func=lambda m: m.chat.id == SOURCE_CHAT_ID)
+def forward(m):
+    try:
+        bot.forward_message(TARGET_CHAT_ID, m.chat.id, m.message_id)
+    except Exception as e:
+        print("forward error:", e)
+
+if __name__ == "__main__":
+    print("Bot 正在運行中...")
+    # 用 infinity_polling 更穩定
+    bot.infinity_polling(timeout=60, long_polling_timeout=60)
