@@ -2,7 +2,7 @@ import telebot
 from telebot import types
 
 # 你的 Telegram Bot Token（去 BotFather 拿）
-TOKEN = 8343172946:AAEmtmqgxODIMcaC75O7PmdmRa-tDVKWGVM
+TOKEN = "8343172946:AAEmtmqgxODIMcaC75O7PmdmRa-tDVKWGVM"
 bot = telebot.TeleBot(TOKEN)
 
 # 來源群組 ID
